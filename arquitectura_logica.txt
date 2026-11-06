@@ -1,0 +1,61 @@
+1. Arquitectura lógica del sistema ADMIVEN
+
+ADMIVEN está desarrollado en Python, con Flet para la interfaz gráfica. La información se guarda en memoria, usando listas de objetos, mientras la aplicación está abierta. Al cerrar el programa, los registros se pierden.
+
+El sistema gestiona las operaciones de un pequeño negocio: productos, ventas, gastos, créditos, clientes y movimientos de inventario.
+
+2. Entidades principales (dataclasses en entidades.py)
+
+| Entidad | Descripción |
+|---|---|
+| Producto | Artículos: nombre, categoría, precios, existencias y stock mínimo. |
+| Venta | Ventas realizadas: cliente, producto, cantidad, precio y total. |
+| Gasto | Egresos del negocio: categoría, descripción, monto y fecha. |
+| Credito | Montos pendientes de pago, con interés, plazo y estado. |
+| Cliente | Nombre, cédula, dirección, teléfono y origen (real o demostración). |
+| Movimiento | Entradas, salidas y ajustes de inventario. |
+
+Métodos de cada clase:
+
+| Clase | Métodos |
+|---|---|
+| Producto | calcular_margen(), estado_stock(), validar() |
+| Venta | calcular_total(), validar(stock_disponible) |
+| Gasto | validar() |
+| Credito | calcular_interes(), calcular_total(), validar(stock_disponible), marcar_pagado(), esta_pendiente() |
+| Cliente | validar(), es_demostracion(), tiene_datos_completos() |
+| Movimiento | validar(), calcular_stock_nuevo() |
+
+Cada objeto recibe un "id" automático al guardarse en su lista.
+
+3. Módulos del sistema
+
+| Módulo | Responsabilidad |
+|---|---|
+| main.py | Archivo principal, corto: carga los datos de demostración, configura la ventana, muestra el splash y el login. |
+| entidades.py | Clases (dataclass) con sus atributos y métodos. |
+| estructuras.py | Listas donde se guardan los objetos, la función siguiente_id() y la clase Pila (historial). |
+| operaciones.py | Operaciones del negocio sobre las listas: ventas, movimientos, gastos, créditos, clientes, búsqueda de clientes, resumen y verificación del login. |
+| funciones.py | Funciones auxiliares (validar, convertir, formato de dinero), splash, login y las pantallas de la interfaz con la navegación. |
+| datos.py | Categorías de productos y gastos, credenciales del login, opciones del menú y datos de demostración. |
+
+4. Estructuras de datos utilizadas
+
+- Listas: guardan los objetos de productos, ventas, gastos, créditos, clientes y movimientos.
+- Pila (LIFO): administra el historial de acciones.
+- Diccionarios: asocian cada opción del menú con su pantalla (PANTALLAS) y devuelven el resumen general.
+- Clases y objetos (dataclass): representan los elementos del negocio.
+
+5. Funcionamiento
+
+Al abrir la app se muestra un splash (pantalla de carga) y luego el login (usuario: admin, clave: 1234). Al ingresar aparece el menú principal; el botón "Cerrar sesión" regresa al login.
+
+Usuario → Interfaz gráfica (funciones.py) → Operaciones (operaciones.py) → Listas de objetos (estructuras.py, con clases de entidades.py).
+
+Los créditos funcionan igual que las ventas: operaciones.registrar_credito() calcula el monto (cantidad x precio de venta), valida el stock, descuenta las unidades con un Movimiento de salida y guarda el crédito. Un crédito pagado cuenta como ingreso en el resultado del negocio.
+
+Ejemplo, registrar una venta: la interfaz valida los datos, operaciones.registrar_venta() busca el producto, crea un objeto Venta, comprueba el stock con Venta.validar(), descuenta el stock mediante un Movimiento de salida y agrega la venta a la lista de ventas.
+
+6. Justificación
+
+La arquitectura modular separa responsabilidades: datos, clases, almacenamiento en listas, lógica del negocio e interfaz. Al usar memoria en lugar de base de datos, el programa es más sencillo y cada ejecución comienza con los datos de demostración.
